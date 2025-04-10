@@ -12,6 +12,37 @@ class NotInCacheError(Exception):
 
 
 class FileCache:
+    """A simple file-based cache system that stores and retrieves data using a key-value pair.
+
+    The cache is designed to be used for storing data that can be expensive to compute or retrieve,
+    allowing for faster access on subsequent requests.
+    
+    The cache supports organizing entries by topics, allowing for better organization and retrieval of data.
+    
+    The cache is implemented using the file system, where each cache entry is stored in a separate file.
+    The cache files are stored in a specified directory and can be organized by topics.
+    The cache files are named using a specified format, and the cache can be vacuumed to remove expired entries.
+    The cache uses a time-to-live (TTL) value to determine if a cache entry is still valid.
+
+    Example usage:
+        Here is an example of how to use the `FileCache` class to cache data from the `yfinance` library:
+
+        ```python
+        import yfinance as yf
+        from sigmavest.cache.file_cache import FileCache
+
+        ticker_symbol = "AAPL"
+
+        cache = FileCache(cache_dir="yfinance-cache", ttl=3600, topic=ticker_symbol)
+        # Vacuum expired cache files
+        cache.vacuum()
+
+        ticker = yf.Ticker(ticker_symbol)
+
+        hist = cache.get("history", not_found_callback=lambda: ticker.history(period="5y"))
+        print(hist)
+        ```
+    """
     default_topic: str = "default"
     filename_format = "{topic}_{key}.cache"
 
