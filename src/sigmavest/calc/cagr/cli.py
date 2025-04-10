@@ -3,6 +3,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .cagr import calculate_cagr
+from .gui import run_gui
 
 app = typer.Typer()
 console = Console()
@@ -39,3 +40,9 @@ def calculate(
     except ValueError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def gui():
+    """Run the GUI for CAGR calculation"""
+    run_gui()
