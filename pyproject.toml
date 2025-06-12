@@ -1,6 +1,6 @@
 [project]
 name = "sigmavest"
-version = "0.1.1"
+version = "0.1.2"
 description = "Investing toolkit"
 authors = [
     { name = "DESKTOP-8ISDEH9\\ivang", email = "ivan.georgiev@gmail.com" },
