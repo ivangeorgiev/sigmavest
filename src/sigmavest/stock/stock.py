@@ -2,14 +2,6 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from sigmavest.stock.persistence import (
-    get_balance_sheet,
-    get_ticker_info,
-    put_balance_sheet,
-    put_cash_flow_statement,
-    put_income_statement,
-    put_ticker_info,
-)
 from sigmavest.stock.repository import (
     BalanceSheetsRepository,
     BaseStockRepository,
@@ -17,8 +9,6 @@ from sigmavest.stock.repository import (
     IncomeStatementsRepository,
     StockInfoRepository,
 )
-
-from .models import balance_sheet_table, cash_flow_statement_table, income_statement_table, ticker_info_table
 
 
 def get_first_existing_key(data: dict, keys: list, default=...):
@@ -35,6 +25,7 @@ def get_first_existing_key(data: dict, keys: list, default=...):
     if default is not ...:
         return default
     raise KeyError(f"None of the keys {keys} exist in the dictionary.")
+
 
 class WithRepository:
     repository_class: type = None
@@ -206,94 +197,6 @@ class BalanceSheets(WithRepository):
         return obj_dict
 
 
-class StockInfo_:
-    def __init__(self, ticker: yf.Ticker, engine=None):
-        self._ticker = ticker
-        self._engine = engine
-        self._balance_sheets = None
-        self._income_statements = None
-        self._cash_flow_statements = None
-
-    @property
-    def ticker(self):
-        return self._ticker
-
-    @property
-    def symbol(self):
-        return self.ticker.ticker
-
-    @property
-    def engine(self):
-        return self._engine
-
-    @property
-    def balance_sheets(self):
-        if not self._balance_sheets:
-            self._balance_sheets = BalanceSheets(self.ticker, self.engine)
-        return self._balance_sheets
-
-    @property
-    def income_statements(self):
-        if not self._income_statements:
-            self._income_statements = IncomeStatements(self.ticker, self.engine)
-        return self._income_statements
-
-    @property
-    def cash_flow_statements(self):
-        if not self._cash_flow_statements:
-            self._cash_flow_statements = CashFlowStatements(self.ticker, self.engine)
-        return self._cash_flow_statements
-
-    @property
-    def ticker_info_table(self):
-        return ticker_info_table
-
-    @property
-    def info(self):
-        info = get_ticker_info(self.engine, self.symbol)
-        if not info:
-            self._refresh_ticker_info()
-            info = get_ticker_info(self.engine, self.symbol)
-        return info
-
-    @property
-    def magic_formula_data(self):
-        income_stmt = self.income_statements.latest
-        balance_sheet = self.balance_sheets.latest
-        if not (income_stmt and balance_sheet):
-            return
-        ebit = self.income_statements.latest.ebit
-        current_assets = balance_sheet.current_assets
-        current_liabilities = balance_sheet.current_liabilities
-        net_working_capital = current_assets - current_liabilities
-        net_fixed_assets = balance_sheet.net_fixed_assets
-
-        ev = self.info.get("enterpriseValue")
-        if not ev:
-            ev = float(self.info["marketCap"]) + balance_sheet.total_assets - balance_sheet.current_liabilities
-
-        return {
-            "Ticker": self.symbol,
-            "MarketCap": float(self.info["marketCap"]),
-            "EBIT": float(ebit),
-            "EnterpriseValue": float(ev),
-            "NetWorkingCapital": float(net_working_capital),
-            "NetFixedAssets": float(net_fixed_assets),
-        }
-
-    def _refresh_ticker_info(self):
-        """
-        Fetch ticker information from Yahoo Finance and store it in the database.
-        """
-        put_ticker_info(self.engine, self.ticker)
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(symbol={self.symbol})"
-
-    def __str__(self):
-        return f"{self.__class__.__name__} for {self.symbol}"
-
-
 class StockInfo(dict):
     _repo: StockInfoRepository = None
 
@@ -333,7 +236,7 @@ class Stock:
         if not self._ticker:
             self._ticker = yf.Ticker(self._symbol)
         return self._ticker
-    
+
     @property
     def symbol(self) -> str:
         return self._symbol
@@ -355,7 +258,7 @@ class Stock:
         if not self._income_statements:
             self._income_statements = IncomeStatements(self.ticker)
         return self._income_statements
-    
+
     @property
     def cash_flow_statements(self) -> CashFlowStatements:
         if not self._cash_flow_statements:

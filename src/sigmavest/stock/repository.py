@@ -6,7 +6,7 @@ from sigmavest.cache.file_cache import FileCache
 class BaseStockRepository:
     cache_key: str
     cache_dir: str = "cache"
-    cache_ttl: int = 360000
+    cache_ttl: int = 3600000
     ticker_property: str
 
     def get(self, ticker: yf.Ticker) -> Any:
