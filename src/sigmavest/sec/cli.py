@@ -1,6 +1,8 @@
 import typer
 import json
 import os
+
+from .shortcuts import get_company_tickers_exchange
 from .client import SecClient
 
 app = typer.Typer()
@@ -15,7 +17,7 @@ def summary():
 @app.command()
 def company_tickers_exchange(
     user_agent: str = typer.Option(None, help="User-Agent for SEC requests"),
-    indent: int = typer.Option(2, help="Indentation level for JSON output"),
+    indent: int = typer.Option(None, help="Indentation level for JSON output"),
     output: str = typer.Option(
         None, "--output", "-o", help="Output file path to write JSON (optional)"
     ),
@@ -27,8 +29,7 @@ def company_tickers_exchange(
     Fetch and print the SEC company tickers exchange JSON.
     Optionally write the result to a JSON file.
     """
-    client = SecClient(api_key="", user_agent=user_agent)
-    data = client.get_company_tickers_exchange()
+    data = get_company_tickers_exchange()
     json_str = json.dumps(data, indent=indent)
     if output:
         if os.path.exists(output) and not force:
@@ -45,7 +46,7 @@ def company_tickers_exchange(
 @app.command()
 def cte(
     user_agent: str = typer.Option(None, help="User-Agent for SEC requests"),
-    indent: int = typer.Option(2, help="Indentation level for JSON output"),
+    indent: int = typer.Option(None, help="Indentation level for JSON output"),
     output: str = typer.Option(
         None, "--output", "-o", help="Output file path to write JSON (optional)"
     ),
