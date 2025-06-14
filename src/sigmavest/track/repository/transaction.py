@@ -28,7 +28,7 @@ class TransactionRepository:
         for row in self.db.execute(f"SELECT {select_fields} FROM {self.table_name}"):
             yield Transaction(*row)
 
-    def add(self, transaction: Transaction):
+    def add(self, transaction: Transaction) -> Transaction:
         last_id = self.get_last_id() or 0
         transaction.id = last_id + 1
         field_names = transaction.get_field_names()
@@ -37,7 +37,7 @@ class TransactionRepository:
         self.db.execute(query, values)
         data_file = self.table_name + ".csv"
         self.db.db.execute(f"COPY {self.table_name} TO '{os.path.join(self.db.data_path, data_file)}' (HEADER true, DELIMITER ',')")
-        print(self.db.execute("SELECT * FROM transactions"))
+        return transaction
 
     def get_last_id(self):
         id = self.db.db.execute(f"SELECT MAX(id) FROM {self.table_name}").fetchone()[0] # type: ignore

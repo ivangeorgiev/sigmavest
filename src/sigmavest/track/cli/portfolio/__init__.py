@@ -2,10 +2,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-
+from sigmavest.dependency import resolve
 from sigmavest.track.domain import Portfolio
 from sigmavest.track.service import PortfolioService
-from sigmavest.dependency import resolve
+from sigmavest.track.service.requests import ListPortfoliosRequest
 
 app = typer.Typer()
 console = Console()
@@ -16,6 +16,7 @@ def list():
     """List porfolios"""
     try:
         service = resolve(PortfolioService)
+        response = service.list_portfolios(ListPortfoliosRequest())
         table = Table(
             title="Portfolios",
             show_header=True,
@@ -26,7 +27,7 @@ def list():
         for f in field_names:
             table.add_column(f)
 
-        for row in service.list_portfolios():
+        for row in response.portfolios:
             table.add_row(str(row.id), row.name, row.description)
 
         console.print(table)

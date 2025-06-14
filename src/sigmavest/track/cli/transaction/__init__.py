@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -8,21 +6,20 @@ from sigmavest.dependency import resolve
 from sigmavest.track.domain import Transaction
 from sigmavest.track.service import TransactionService
 
-from ..validators import validate_date, validate_decimal, validate_portfolio_id
+from sigmavest.track.service.requests import ListTransactionsRequest, BuySecurityRequest
+
 
 app = typer.Typer()
 console = Console()
-
-DATA_PATH = ".dev/track_data"
-DB_PATH = ":memory:"
 
 
 @app.command(name="list")
 def list_():
     """List transactions"""
     try:
-        service: TransactionService = resolve(TransactionService)
-        transactions = service.list_transactions()
+        request = ListTransactionsRequest()
+        service = resolve(TransactionService)
+        transactions = service.list_transactions(request).transactions
 
         table = Table(
             title="Transactions",
@@ -46,37 +43,32 @@ def list_():
 
 @app.command()
 def buy(
-    portfolio_id: str = typer.Argument(
-        ..., help="ID of the portfolio to which the transaction belongs", callback=validate_portfolio_id
-    ),
+    portfolio_id: str = typer.Argument(..., help="ID of the portfolio to which the transaction belongs"),
     ticker: str = typer.Argument(..., help="Ticker symbol of the asset to buy"),
-    quantity: str = typer.Argument(..., help="Quantity of the asset to buy", callback=validate_decimal),
-    price: str = typer.Argument(..., help="Price per unit of the asset", callback=validate_decimal),
-    fees: str = typer.Argument(..., help="Transaction fees for the buy", callback=validate_decimal),
-    amount_paid: str = typer.Argument(..., help="Total amount paid for the transaction", callback=validate_decimal),
+    quantity: str = typer.Argument(..., help="Quantity of the asset to buy"),
+    price: str = typer.Argument(..., help="Price per unit of the asset"),
+    fees: str = typer.Argument(..., help="Transaction fees for the buy"),
+    amount_paid: str = typer.Argument(..., help="Total amount paid for the transaction"),
     currency: str = typer.Argument(..., help=""),
-    date: str = typer.Argument(..., help="Date of the transaction (YYYY-MM-DD)", callback=validate_date),
+    date: str = typer.Argument(..., help="Date of the transaction (YYYY-MM-DD)"),
 ):
     """Record a buy transaction"""
     try:
-        fees = fees or Decimal("0")  # type: ignore
-        transaction = Transaction(
-            id=None,
+        request = BuySecurityRequest(
             portfolio_id=portfolio_id,
-            date=date,  # type: ignore
-            transaction_type="BUY",
-            ticker=ticker,
+            security_id=ticker,
             quantity=quantity,  # type: ignore
             price=price,  # type: ignore
             fees=fees,  # type: ignore
-            amount_paid=Decimal(amount_paid or quantity * price + fees),  # type: ignore
+            amount_paid=amount_paid,  # type: ignore
             currency=currency,
-            exchange_rate=None,
+            date=date,
         )
-        service: TransactionService = resolve(TransactionService)
-        transaction = service.add_transaction(transaction)
 
-        console.print(f"[green]Transaction recorded: {transaction}[/green]")
+        service = resolve(TransactionService)
+        response = service.buy_serucity(request)
+
+        console.print(f"[green]Transaction recorded: {response.transactions}[/green]")
     except ValueError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(code=1)
