@@ -4,8 +4,7 @@ from rich.table import Table
 
 from sigmavest.dependency import resolve
 from sigmavest.track.domain import Portfolio
-from sigmavest.track.service import PortfolioService
-from sigmavest.track.service.requests import ListPortfoliosRequest
+from sigmavest.track.service import PortfolioService, ListPortfoliosRequest
 
 app = typer.Typer()
 console = Console()

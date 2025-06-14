@@ -1,4 +1,5 @@
-"""
+
+## Layers
 
 ```mermaid
 flowchart TD
@@ -7,5 +8,3 @@ flowchart TD
     Repository -->|Domain Models| Domain
     Service -->|Persistence| Repository
 ```
-
-"""

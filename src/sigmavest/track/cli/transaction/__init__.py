@@ -4,9 +4,8 @@ from rich.table import Table
 
 from sigmavest.dependency import resolve
 from sigmavest.track.domain import Transaction
-from sigmavest.track.service import TransactionService
+from sigmavest.track.service import TransactionService, ListTransactionsRequest, BuySecurityRequest
 
-from sigmavest.track.service.requests import ListTransactionsRequest, BuySecurityRequest
 
 
 app = typer.Typer()

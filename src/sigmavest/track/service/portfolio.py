@@ -2,7 +2,7 @@ from typing import Optional
 
 from ...dependency import resolve
 from ..repository import PortfolioRepository
-from .requests import ListPortfoliosRequest, ListPortfoliosResponse
+from .requests.portfolio import ListPortfoliosRequest, ListPortfoliosResponse
 
 
 class PortfolioService:
