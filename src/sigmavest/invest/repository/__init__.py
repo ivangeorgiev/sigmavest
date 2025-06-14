@@ -1,5 +1,6 @@
-from .portfolio import PortfolioRepository
 from .db import Database
+from .portfolio import PortfolioRepository
+from .sell_allocations import SellAllocationsRepository
 from .transaction import TransactionRepository
 
-__all__ = ["PortfolioRepository", "TransactionRepository", "Database"]
+__all__ = ["PortfolioRepository", "SellAllocationsRepository", "TransactionRepository", "Database"]

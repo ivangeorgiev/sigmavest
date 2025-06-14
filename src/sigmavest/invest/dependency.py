@@ -1,5 +1,5 @@
 from ..dependency.container import Container
-from .repository import PortfolioRepository, Database, TransactionRepository
+from .repository import PortfolioRepository, Database, TransactionRepository, SellAllocationsRepository
 from .service import PortfolioService, TransactionService, DatabaseService
 
 
@@ -9,6 +9,7 @@ def register(c: Container):
     # Register repositories
     c.register_factory(TransactionRepository, lambda c: TransactionRepository(c.resolve(Database)))
     c.register_factory(PortfolioRepository, lambda c: PortfolioRepository(c.resolve(Database)))
+    c.register_factory(SellAllocationsRepository, lambda c: SellAllocationsRepository(c.resolve(Database)))
 
     # Register services
     c.register_factory(TransactionService, lambda c: TransactionService(c.resolve(TransactionRepository)))

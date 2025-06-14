@@ -2,12 +2,14 @@ from typing import Optional
 from sigmavest.dependency import resolve
 from sigmavest.settings import Settings
 from .requests.database import (
+    CreateDatabaseViewsRequest,
+    CreateDatabaseViewsResponse,
     ImportDatabaseRequest,
     ImportDatabaseResponse,
     ExportDatabaseResponse,
     ExportDatatbaseRequest,
     QueryDatabaseResponse,
-    QueryDatabaseRequest
+    QueryDatabaseRequest,
 )
 from ..repository import Database
 
@@ -44,3 +46,7 @@ class DatabaseService:
             return QueryDatabaseResponse(column_names=column_names, rows=query_result.fetchall())
         else:
             return QueryDatabaseResponse(column_names=[], rows=[])
+
+    def create_views(self, request: CreateDatabaseViewsRequest) -> CreateDatabaseViewsResponse:
+        self.db.create_views()
+        return CreateDatabaseViewsResponse()

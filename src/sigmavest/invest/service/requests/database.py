@@ -26,3 +26,10 @@ class QueryDatabaseRequest(BaseModel, BaseRequest):
 class QueryDatabaseResponse(BaseModel, BaseResponse):
     column_names: list[str]
     rows: list
+
+
+class CreateDatabaseViewsRequest(BaseModel, BaseRequest):
+    pass
+
+class CreateDatabaseViewsResponse(BaseModel, BaseResponse):
+    pass

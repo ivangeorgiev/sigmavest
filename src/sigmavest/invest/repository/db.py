@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import os
 
 from collections import namedtuple
@@ -83,15 +84,45 @@ class Database:
         Create views for easier access to data.
         """
         self.db.execute("""
-            CREATE OR REPLACE VIEW holdings AS
-            SELECT buys.ticker, 
+            CREATE OR REPLACE VIEW buy_holdings AS
+            SELECT buys.id,
+                   buys.portfolio_id,
+                   buys.ticker, 
+                   buys.quantity AS quantity,
+                   buys.amount_paid AS cost,
+                   CAST((buys.quantity - COALESCE(alloc.sold_quantity, 0)) AS DECIMAL(20, 8)) AS remaining_quantity, 
+                   CAST((buys.quantity - COALESCE(alloc.sold_quantity, 0))*buys.amount_paid/buys.quantity AS DECIMAL(20,8)) AS remaining_cost
+              FROM transactions buys
+              LEFT JOIN (
+                           SELECT SUM(quantity) AS sold_quantity,
+                                  buy_transaction_id
+                             FROM sell_allocations
+                            GROUP BY buy_transaction_id
+                        ) alloc ON alloc.buy_transaction_id=buys.id
+             WHERE buys.transaction_type = 'BUY'
+                   AND buys.quantity <> 0
+        """)
+        self.db.execute("""
+            CREATE OR REPLACE VIEW portfolio_holdings AS
+            SELECT buys.portfolio_id,
+                   buys.ticker, 
                    CAST(SUM(buys.quantity - COALESCE(alloc.sold_quantity, 0)) AS DECIMAL(20,8)) AS quantity, 
-                   CAST(SUM((buys.quantity - COALESCE(alloc.sold_quantity, 0))*buys.amount_paid/buys.quantity) AS DECIMAL(20,8)) AS cost
+                   CAST(SUM((buys.quantity - COALESCE(alloc.sold_quantity, 0))*buys.amount_paid/buys.quantity) AS DECIMAL(20,8)) AS cost,
+                   CAST(SUM((buys.quantity - COALESCE(alloc.sold_quantity, 0))*buys.amount_paid/buys.quantity) AS DECIMAL(20,8))/CAST(SUM(buys.quantity - COALESCE(alloc.sold_quantity, 0)) AS DECIMAL(20,8)) AS average_price
               FROM transactions buys
               LEFT JOIN (SELECT SUM(quantity) AS sold_quantity, buy_transaction_id FROM sell_allocations GROUP BY buy_transaction_id) alloc ON alloc.buy_transaction_id=buys.id
              WHERE buys.transaction_type = 'BUY'
-             GROUP BY buys.ticker
+             GROUP BY buys.portfolio_id, buys.ticker
             HAVING SUM(buys.quantity - COALESCE(alloc.sold_quantity, 0)) <> 0
+        """)
+        self.db.execute("""
+            CREATE OR REPLACE VIEW holdings AS
+            SELECT ticker, 
+                   SUM(quantity) AS quantity,
+                   SUM(cost) AS cost,
+                   SUM(cost)/SUM(quantity) AS average_price
+              FROM portfolio_holdings
+             GROUP BY ticker
         """)
 
     def export_table_to_csv(self, table_name: str, csv_file_name: str):
@@ -153,6 +184,9 @@ class Database:
         else:
             return self.db.execute(query, params).fetchall()
 
+    def execute_many(self, query: str, params=None):
+        return self.db.executemany(query, params).fetchall()
+
     def execute_ex(self, query: str, params=None) -> list | None:
         if params is None:
             result = self.db.execute(query)
@@ -182,6 +216,17 @@ class Database:
 
     def close(self):
         self.db.close()
+
+    @contextmanager
+    def transaction(self):
+        self.execute("BEGIN TRANSACTION")
+        try:
+            yield
+            self.execute("COMMIT")
+        except:
+            self.execute("ROLLBACK")
+            raise
+            
 
     @classmethod
     def get_instance(cls):

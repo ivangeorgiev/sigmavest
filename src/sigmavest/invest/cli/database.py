@@ -6,8 +6,13 @@ from rich.console import Console
 from rich.table import Table
 
 from sigmavest.dependency import resolve
-from sigmavest.invest.service import DatabaseService, ImportDatabaseRequest, ExportDatatbaseRequest
-from sigmavest.invest.service.requests.database import QueryDatabaseRequest
+from sigmavest.invest.service import (
+    CreateDatabaseViewsRequest,
+    DatabaseService,
+    ExportDatatbaseRequest,
+    ImportDatabaseRequest,
+    QueryDatabaseRequest,
+)
 from sigmavest.settings import Settings
 
 app = typer.Typer()
@@ -84,3 +89,13 @@ def query(
     except ValueError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def create_views():
+    """Create database views"""
+    service = resolve(DatabaseService)
+    request = CreateDatabaseViewsRequest()
+    request = service.create_views(request)
+
+    console.print("[green]Database views created.[/green]")

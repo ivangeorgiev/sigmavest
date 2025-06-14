@@ -1,12 +1,14 @@
 from .database import DatabaseService
 from .portfolio import PortfolioService
 from .requests.database import (
+    CreateDatabaseViewsRequest,
+    CreateDatabaseViewsResponse,
     ExportDatabaseResponse,
     ExportDatatbaseRequest,
     ImportDatabaseRequest,
     ImportDatabaseResponse,
-    QueryDatabaseResponse,
     QueryDatabaseRequest,
+    QueryDatabaseResponse,
 )
 from .requests.portfolio import ListPortfoliosRequest, ListPortfoliosResponse
 from .requests.transaction import (
@@ -14,6 +16,10 @@ from .requests.transaction import (
     BuySecurityResponse,
     ListTransactionsRequest,
     ListTransactionsResponse,
+    RecordDividendRequest,
+    RecordDividendResponse,
+    SellSecurityRequest,
+    SellSecurityResponse
 )
 from .transaction import TransactionService
 
@@ -22,6 +28,8 @@ __all__ = [
     "PortfolioService",
     "TransactionService",
     # Database request/response
+    "CreateDatabaseViewsRequest",
+    "CreateDatabaseViewsResponse",
     "ExportDatabaseResponse",
     "ExportDatatbaseRequest",
     "ImportDatabaseRequest",
@@ -29,10 +37,14 @@ __all__ = [
     "QueryDatabaseResponse",
     "QueryDatabaseRequest",
     # Transaction requests
-    "ListTransactionsRequest",
-    "ListTransactionsResponse",
     "BuySecurityRequest",
     "BuySecurityResponse",
+    "ListTransactionsRequest",
+    "ListTransactionsResponse",
+    "RecordDividendResponse",
+    "RecordDividendRequest",
+    "SellSecurityRequest",
+    "SellSecurityResponse",
     # Portfolio requests
     "ListPortfoliosRequest",
     "ListPortfoliosResponse",

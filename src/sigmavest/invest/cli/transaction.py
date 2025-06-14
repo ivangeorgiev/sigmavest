@@ -4,8 +4,13 @@ from rich.table import Table
 
 from sigmavest.dependency import resolve
 from sigmavest.invest.domain import Transaction
-from sigmavest.invest.service import TransactionService, ListTransactionsRequest, BuySecurityRequest
-
+from sigmavest.invest.service import (
+    BuySecurityRequest,
+    ListTransactionsRequest,
+    RecordDividendRequest,
+    SellSecurityRequest,
+    TransactionService,
+)
 
 app = typer.Typer()
 console = Console()
@@ -70,3 +75,69 @@ def buy(
     except ValueError as e:
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(code=1)
+
+@app.command()
+def sell(
+    portfolio_id: str = typer.Argument(..., help="ID of the portfolio to which the transaction belongs"),
+    ticker: str = typer.Argument(..., help="Ticker symbol of the asset to buy"),
+    quantity: str = typer.Argument(..., help="Quantity of the asset to buy"),
+    price: str = typer.Argument(..., help="Price per unit of the asset"),
+    fees: str = typer.Argument(..., help="Transaction fees for the buy"),
+    amount_paid: str = typer.Argument(..., help="Total amount paid for the transaction"),
+    currency: str = typer.Argument(..., help=""),
+    date: str = typer.Argument(..., help="Date of the transaction (YYYY-MM-DD)"),
+):
+    """Record a sell transaction"""
+    try:
+        request = SellSecurityRequest(
+            portfolio_id=portfolio_id,
+            security_id=ticker,
+            quantity=quantity,  # type: ignore
+            price=price,  # type: ignore
+            fees=fees,  # type: ignore
+            amount_paid=amount_paid,  # type: ignore
+            currency=currency,
+            date=date,
+        )
+
+        service = resolve(TransactionService)
+        response = service.sell_security(request)
+
+        console.print(f"[green]Transaction recorded: {response.transactions}[/green]")
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def dividend(
+    portfolio_id: str = typer.Argument(..., help="ID of the portfolio to which the transaction belongs"),
+    ticker: str = typer.Argument(..., help="Ticker symbol of the asset to buy"),
+    quantity: str = typer.Argument(..., help="Quantity of the asset to buy"),
+    price: str = typer.Argument(..., help="Price per unit of the asset"),
+    fees: str = typer.Argument(..., help="Transaction fees for the buy"),
+    amount_paid: str = typer.Argument(..., help="Total amount paid for the transaction"),
+    currency: str = typer.Argument(..., help=""),
+    date: str = typer.Argument(..., help="Date of the transaction (YYYY-MM-DD)"),
+):
+    """Record a dividend transaction"""
+    try:
+        request = RecordDividendRequest(
+            portfolio_id=portfolio_id,
+            security_id=ticker,
+            quantity=quantity,  # type: ignore
+            price=price,  # type: ignore
+            fees=fees,  # type: ignore
+            amount_paid=amount_paid,  # type: ignore
+            currency=currency,
+            date=date,
+        )
+
+        service = resolve(TransactionService)
+        response = service.record_dividend(request)
+
+        console.print(f"[green]Transaction recorded: {response.transactions}[/green]")
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        raise typer.Exit(code=1)
+    
