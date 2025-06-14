@@ -1,13 +1,12 @@
-import os
 from typing import Optional
 
 from ..domain import Transaction
-from .db import TrackDb
+from .db import Database
 
 
 class TransactionRepository:
-    def __init__(self, db: Optional[TrackDb] = None):
-        self.db: TrackDb = db or TrackDb.get_instance()
+    def __init__(self, db: Optional[Database] = None):
+        self.db: Database = db or Database.get_instance()
 
     @classmethod
     def get_instance(cls, db=None):
@@ -35,8 +34,6 @@ class TransactionRepository:
         values = [str(getattr(transaction, n)) for n in field_names]
         query = f"INSERT INTO {self.table_name} ({','.join(field_names)}) VALUES ({','.join(['?']*len(field_names))})"
         self.db.execute(query, values)
-        data_file = self.table_name + ".csv"
-        self.db.db.execute(f"COPY {self.table_name} TO '{os.path.join(self.db.data_path, data_file)}' (HEADER true, DELIMITER ',')")
         return transaction
 
     def get_last_id(self):

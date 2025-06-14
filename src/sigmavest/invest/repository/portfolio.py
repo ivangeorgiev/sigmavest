@@ -2,12 +2,12 @@ from typing import Optional
 
 from ..domain.portfolio import Portfolio
 from ..exceptions import DoesNotExist
-from .db import TrackDb
+from .db import Database
 
 
 class PortfolioRepository:
-    def __init__(self, db: Optional[TrackDb] = None):
-        self.db = db or TrackDb.get_instance()
+    def __init__(self, db: Optional[Database] = None):
+        self.db = db or Database.get_instance()
 
     @classmethod
     def get_instance(cls, db=None):
@@ -18,8 +18,7 @@ class PortfolioRepository:
 
     @property
     def table_name(self):
-        table_name = f"{self.db.data_path}/portfolios.csv"
-        return table_name
+        return "portfolios"
 
     def list_portfolios(self, select_fields: Optional[str | list] = None):
         select_fields = select_fields or Portfolio.get_field_names()

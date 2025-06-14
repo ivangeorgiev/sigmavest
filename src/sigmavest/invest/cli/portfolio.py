@@ -3,8 +3,8 @@ from rich.console import Console
 from rich.table import Table
 
 from sigmavest.dependency import resolve
-from sigmavest.track.domain import Portfolio
-from sigmavest.track.service import PortfolioService, ListPortfoliosRequest
+from sigmavest.invest.domain import Portfolio
+from sigmavest.invest.service import PortfolioService, ListPortfoliosRequest
 
 app = typer.Typer()
 console = Console()

@@ -6,8 +6,8 @@ from pydantic_settings import BaseSettings
 # See: https://docs.pydantic.dev/latest/concepts/pydantic_settings/
 class Settings(BaseSettings):
     DATABASE_DATA_PATH: str = ".dev/track_data"
-    DATABASE_PATH: str = ".dev/track_data/sigmavest-track.duckdb"
-    DEPENDENCY_AUTO_REGISTER: list = ["sigmavest.track.dependency"]
+    DATABASE_PATH: str = ".dev/track_data/sigmavest-invest.duckdb"
+    DEPENDENCY_AUTO_REGISTER: list = ["sigmavest.invest.dependency"]
 
     DEBUG: bool = False
     ENVIRONMENT: str = "development"

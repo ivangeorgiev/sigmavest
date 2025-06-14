@@ -1,4 +1,7 @@
+import os
+
 from collections import namedtuple
+from pathlib import Path
 from typing import Optional
 
 from sigmavest.settings import Settings
@@ -8,40 +11,40 @@ DEFAULT_DB_PATH = ":memory:"
 DEFAULT_DATA_PATH = "."
 
 
-class TrackDb:
-    def __init__(self, db_path: Optional[str] = None, data_path: Optional[str] = None):
+class Database:
+    def __init__(self, db_path: Optional[str] = None):
         import duckdb
 
         settings: Settings = resolve(Settings)
         db_path = db_path or settings.DATABASE_PATH or DEFAULT_DB_PATH
         self.db = duckdb.connect(database=db_path, read_only=False)
-        self.data_path = data_path or settings.DATABASE_DATA_PATH or DEFAULT_DATA_PATH
-        self.import_data()
-        self.create_views()
 
-    def import_data(self):
+    def import_data(self, data_path: str):
         """
         Import data from CSV files into DuckDB tables.
         """
-        import os
 
-        if not os.path.exists(self.data_path):
-            raise ValueError(f"Data path {self.data_path} does not exist.")
+        if not os.path.exists(data_path):
+            raise ValueError(f"Data path '{data_path}' does not exist.")
 
-        # self._create_transactions_table()
+        data_files = [fn for fn in os.listdir(data_path) if fn.endswith(".csv")]
+        db = self.db
 
-        for file in os.listdir(self.data_path):
-            if file.endswith(".csv"):
+        db.execute("BEGIN TRANSACTION")
+
+        try:
+            for file in data_files:
                 table_name = file[:-4]
 
+                self.db.execute(f"DROP TABLE IF EXISTS {table_name}")
                 self.db.execute(f"""
-                    CREATE TABLE IF NOT EXISTS "{table_name}" AS
-                    SELECT * FROM '{os.path.join(self.data_path, file)}'
+                    CREATE TABLE "{table_name}" AS
+                    SELECT * FROM '{os.path.join(data_path, file)}'
                 """)  # type: ignore
-                # self.import_csv(os.path.join(self.data_path, file), table_name)
-
-                # TODO: Move this to logging
-                print(f"Imported {file} into DuckDB table '{table_name}'.")
+            self.db.execute("COMMIT")
+        except Exception as err:
+            db.execute("ROLLBACK")
+            raise err
 
         self.db.execute("""
                 ALTER TABLE transactions ALTER date TYPE DATE;
@@ -50,6 +53,30 @@ class TrackDb:
                 ALTER TABLE transactions ALTER fees TYPE DECIMAL(20,8);
                 ALTER TABLE transactions ALTER amount_paid TYPE DECIMAL(20,8);
         """)
+
+    def export_data(self, data_path, force: Optional[bool]=False):
+        """
+        Export data from DuckDB tables to CSV files.
+        """
+        path = Path(data_path).resolve()
+
+        if path.exists():
+            if not path.is_dir:
+                raise ValueError(f"Data path '{data_path}' exists, but is not a directory.")
+            if not force and any(os.listdir(path)):
+                raise ValueError(f"Data path directory '{data_path}' is not empty.")
+        else:
+            os.makedirs(path)
+
+        tables = self.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'main'
+        """)
+        table_names = [t[0] for t in tables]
+        for table_name in table_names:
+            target_file = str(path / f"{table_name}.csv")
+            self.export_table_to_csv(table_name, target_file)
 
     def create_views(self):
         """
@@ -66,6 +93,9 @@ class TrackDb:
              GROUP BY buys.ticker
             HAVING SUM(buys.quantity - COALESCE(alloc.sold_quantity, 0)) <> 0
         """)
+
+    def export_table_to_csv(self, table_name: str, csv_file_name: str):
+        self.db.execute(f"COPY {table_name} TO '{csv_file_name}' (HEADER true, DELIMITER ',')")
 
     def import_csv(self, csv_path: str, table_name: str):
         conn = self.db
@@ -132,22 +162,21 @@ class TrackDb:
             Row = namedtuple("Row", [col[0] for col in result.description])  # type: ignore
             return [Row(*row) for row in result.fetchall()]
 
-
     def exists(self, db, table: str, **kwargs) -> bool:
         """
         Check if a record exists in the specified table matching all conditions.
-        
+
         Args:
             conn: DuckDB connection
             table: Table name
             kwargs: Dictionary of column=value pairs to match
-            
+
         Returns:
             bool: True if record exists, False otherwise
         """
         where_clause = " AND ".join([f"{k} = ?" for k in kwargs.keys()])
         query = f"SELECT EXISTS(SELECT 1 FROM {table} WHERE {where_clause})"
-        
+
         result = self.db.execute(query, list(kwargs.values())).fetchone()
         return result[0] if result else False
 

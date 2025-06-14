@@ -8,3 +8,21 @@ flowchart TD
     Repository -->|Domain Models| Domain
     Service -->|Persistence| Repository
 ```
+
+
+## CLI
+
+* invest
+  * portfolio
+    * list
+    * create
+    * update
+    * holdings
+  * security
+    * buy
+    * sell
+    * dividend
+  * data
+    * import
+    * export
+  
