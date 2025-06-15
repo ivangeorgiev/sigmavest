@@ -1,5 +1,6 @@
 
 from functools import lru_cache
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -11,6 +12,9 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
+    MAGIC_FORMULA_USERNAME: str = ""
+    MAGIC_FORMULA_PASSWORD: str = ""
+    MAGIC_FORMULA_MIN_MARKET_CAP: int = 50
 
     class Config:
         env_file = ".env"

@@ -9,7 +9,7 @@ import os
 
 app = typer.Typer()
 
-modules = ["portfolio", "transaction", "database"]
+modules = ["portfolio", "transaction", "database", "magicformula"]
 
 for module_name in modules:
     m = importlib.import_module(f".{module_name}", __package__)
